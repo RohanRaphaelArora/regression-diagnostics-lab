@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Regression Diagnostics Lab</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+<aside id="sidebar">
+<div class="sb-h"><div><h1>Regression Diagnostics Lab<small>Interactive Statistical Teaching Tool</small></h1></div>
+<button class="btn btn-w" id="btn-sb" title="Toggle Sidebar">&#x25C0;</button></div>
+<div class="sb-s"><h3>Dataset Controls</h3>
+<div class="cg"><label>Sample Size <span class="v" id="ln">35</span></label><input type="range" id="cn" min="10" max="60" value="35"></div>
+<div class="cg"><label>Noise Level <span class="v" id="lno">1.0</span></label><input type="range" id="cno" min="0.1" max="3" step="0.1" value="1"></div>
+<div class="cg"><label>Random Seed</label><input type="number" id="cs" value="42"></div>
+<button class="btn" id="breset" style="width:100%">Reset Dataset</button>
+<button class="btn" id="bnew" style="width:100%;margin-top:5px">New Random Dataset</button>
+<button class="btn btn-a" id="bout" style="width:100%;margin-top:5px">Add Outlier</button></div>
+<div class="sb-s"><h3>Selected Observation</h3>
+<div id="nosel" style="font-size:11px;color:var(--mu)">Click a point on the chart to select it</div>
+<div id="selctrl" class="hid">
+<div class="sr"><span class="sl">Point ID</span><span class="sv" id="selid">--</span></div>
+<div class="cg mt2"><label>X Value <span class="v" id="lsx">0</span></label><input type="range" id="csx" min="-5" max="65" step="0.1" value="0"></div>
+<div class="cg"><label>Y Value <span class="v" id="lsy">0</span></label><input type="range" id="csy" min="-20" max="400" step="0.1" value="0"></div>
+<div class="cb"><input type="checkbox" id="cex"><span>Exclude from model</span></div></div></div>
+<div class="sb-s"><h3>Options</h3>
+<div class="cb"><input type="checkbox" id="ccomp"><span>Show leave-one-out comparison</span></div>
+<div class="cb"><input type="checkbox" id="cclass"><span>Classroom Mode</span></div></div>
+<div class="sb-a">
+<button class="btn" id="brm">Remove Selected Point</button>
+<button class="btn" id="bexp">Export Plot (PNG)</button>
+<button class="btn" id="bcsv">Export Data (CSV)</button>
+<button class="btn btn-p" id="bcmp">Compare Models</button></div>
+</aside>
+<main id="workspace">
+<div id="tab-nav">
+<button class="tab-b active" data-t="0">1. Regression Playground</button>
+<button class="tab-b" data-t="1">2. Outlier &amp; Influence</button>
+<button class="tab-b" data-t="2">3. Diagnostics Dashboard</button>
+<button class="tab-b" data-t="3">4. Assumption Violations</button>
+<button class="tab-b" data-t="4">5. Remedies Lab</button>
+</div>
+
+<div class="tab-p active" id="p0">
+<div class="ph"><h2>Interactive Regression Playground</h2><p>Drag any observation to see how it affects the OLS regression model in real time. The regression line, slope, intercept, R-squared, MSE, and diagnostics all update as you move points.</p></div>
+<div class="cq" id="cq0"><h3>Think About It</h3><p>What happens to the regression slope when you move an observation horizontally? When you move it vertically? Which direction creates more change?</p>
+<button class="rv" onclick="reveal(0)">Reveal Interpretation</button>
+<div class="ca" id="ca0">Moving a point vertically creates a large residual and pulls the line toward it. Moving horizontally changes leverage: points far from the mean of X can strongly affect the slope even with a small residual. The combination of high leverage and large residual creates maximum influence.</div></div>
+<div class="pg"><div class="pm">
+<div class="ch"><div id="s1" style="width:100%;height:440px"></div></div>
+<div class="eq" id="eq1"></div></div>
+<div class="sp" id="sp1"></div></div>
+<div class="ep"><h3>Live Interpretation</h3><div id="ex1"></div></div></div>
+
+<div class="tab-p" id="p1">
+<div class="ph"><h2>Outlier, Leverage &amp; Influence Simulator</h2><p>Explore how different types of unusual observations affect regression. An outlier, a high-leverage point, and an influential observation are <strong>not necessarily the same thing</strong>.</p></div>
+<div class="cq" id="cq1"><h3>Think About It</h3><p>Can a high-leverage point have a small residual? Why might that still matter?</p>
+<button class="rv" onclick="reveal(1)">Reveal Interpretation</button>
+<div class="ca" id="ca1">Yes. A point far from the mean of X but close to the regression line has a small residual but high leverage. It has the potential to affect the slope if it moves even slightly. Influence requires both leverage and a large residual.</div></div>
+<div class="eb" id="exbar">
+<button class="ebt active" data-e="A">A: Ordinary</button>
+<button class="ebt" data-e="B">B: Response Outlier</button>
+<button class="ebt" data-e="C">C: High Leverage</button>
+<button class="ebt" data-e="D">D: High Influence</button>
+<button class="ebt" data-e="E">E: Delete &amp; Compare</button></div>
+<div class="pg"><div class="pm">
+<div class="ch"><div id="s2" style="width:100%;height:440px"></div></div>
+<div class="eq" id="eq2"></div></div>
+<div class="sp" id="sp2"></div></div>
+<div class="ep"><h3>Experiment Interpretation</h3><div id="ex2"></div></div></div>
+
+<div class="tab-p" id="p2">
+<div class="ph"><h2>Complete Diagnostic Dashboard</h2><p>Synchronized diagnostic plots for the current model. Click any observation to highlight it across all plots.</p></div>
+<div class="cq" id="cq2"><h3>Think About It</h3><p>Should we remove an observation just because Cook's Distance is large? What else should we consider?</p>
+<button class="rv" onclick="reveal(2)">Reveal Interpretation</button>
+<div class="ca" id="ca2">No. A large Cook's Distance indicates influence, not error. Investigate whether the data is correct, whether it represents a real phenomenon, and whether the model is misspecified. Deletion is a last resort.</div></div>
+<div class="dg">
+<div class="pn"><div class="pt">Residuals vs Fitted Values</div><div class="pc" id="d1"></div><div class="pe">Random scatter around zero suggests no systematic pattern. Curvature may indicate misspecified functional form. Funnel shape may suggest heteroscedasticity.</div></div>
+<div class="pn"><div class="pt">Normal Q-Q Plot</div><div class="pc" id="d2"></div><div class="pe">Compares ordered standardized residuals against theoretical normal quantiles. Departures from the line may indicate non-normal errors.</div></div>
+<div class="pn"><div class="pt">Residuals vs Leverage</div><div class="pc" id="d3"></div><div class="pe">Shows standardized residuals against leverage. Points in the corners have both high leverage and large residuals.</div></div>
+<div class="pn"><div class="pt">Cook's Distance</div><div class="pc" id="d4"></div><div class="pe">Bar chart of Cook's Distance. The 4/n reference is a screening heuristic, not an automatic exclusion threshold.</div></div>
+<div class="pn"><div class="pt">Standardized Residuals</div><div class="pc" id="d5"></div><div class="pe">Standardized residuals with reference lines at +2, -2, +3, -3. These are heuristics, not definitive tests.</div></div>
+</div></div>
+
+<div class="tab-p" id="p3">
+<div class="ph"><h2>Regression Assumption Violations</h2><p>Generate datasets with different characteristics and investigate how they violate or satisfy regression assumptions.</p></div>
+<div class="cq" id="cq3"><h3>Think About It</h3><p>How could a wrong functional form create patterns in residual plots?</p>
+<button class="rv" onclick="reveal(3)">Reveal Interpretation</button>
+<div class="ca" id="ca3">If the true relationship is nonlinear but you fit a straight line, the residuals will show a systematic curved pattern. The model tries to fit a curve with a line, leaving structured error that should be random.</div></div>
+<div class="fn">
+<div class="cg" style="min-width:180px"><label>Dataset Type</label><select id="dstype"><option value="clean">Clean Linear</option><option value="nonlinear">Nonlinear</option><option value="hetero">Heteroscedastic</option><option value="outlier">Large Outlier</option><option value="leverage">High Leverage</option><option value="influential">Influential Point</option></select></div>
+<div class="cg" style="min-width:110px"><label>Sample Size <span class="v" id="ln4">35</span></label><input type="range" id="cn4" min="10" max="60" value="35"></div>
+<div class="cg" style="min-width:110px"><label>Noise <span class="v" id="lno4">1.0</span></label><input type="range" id="cno4" min="0.1" max="3" step="0.1" value="1"></div>
+<div class="cg" style="min-width:110px"><label>Nonlinearity <span class="v" id="lnl4">1.0</span></label><input type="range" id="cnl4" min="0" max="3" step="0.1" value="1"></div>
+<div class="cg" style="min-width:110px"><label>Heterosced. <span class="v" id="lht4">1.0</span></label><input type="range" id="cht4" min="0" max="3" step="0.1" value="1"></div>
+<div class="cg" style="min-width:110px"><label>Outlier Mag. <span class="v" id="lom4">3.0</span></label><input type="range" id="com4" min="1" max="10" step="0.5" value="3"></div>
+<div class="cg" style="min-width:80px"><label>Seed</label><input type="number" id="cs4" value="42"></div>
+<div style="display:flex;align-items:flex-end"><button class="btn btn-p" id="bgen4">Generate</button></div></div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+<div class="ch"><div id="s4" style="width:100%;height:380px"></div></div>
+<div style="display:flex;flex-direction:column;gap:14px">
+<div class="pn"><div class="pt">Residuals vs Fitted</div><div class="pc" style="height:180px" id="d14"></div></div>
+<div class="pn"><div class="pt">Normal Q-Q Plot</div><div class="pc" style="height:180px" id="d24"></div></div></div></div>
+<div class="ep mt"><h3>Interpretation and Questions for Students</h3><div id="ex4"></div></div></div>
+
+<div class="tab-p" id="p4">
+<div class="ph"><h2>Remedies Laboratory</h2><p>Compare different statistical approaches on the same dataset. Remedies must match the underlying cause of the model problem.</p></div>
+<div class="cq" id="cq4"><h3>Think About It</h3><p>Why might robust regression be preferable to ordinary least squares? What are the trade-offs?</p>
+<button class="rv" onclick="reveal(4)">Reveal Interpretation</button>
+<div class="ca" id="ca4">Robust regression downweights influential outliers so the fit reflects the majority of data. It sacrifices some efficiency on clean data but gains protection against contamination. The trade-off is that it no longer minimizes squared error exactly.</div></div>
+<div class="mb">
+<label class="ml"><input type="checkbox" checked disabled> OLS (Baseline)</label>
+<label class="ml"><input type="checkbox" id="mhub"> Huber Robust</label>
+<label class="ml"><input type="checkbox" id="mexc"> Exclude Selected</label>
+<label class="ml"><input type="checkbox" id="mlog"> Log(Y) Transform</label>
+<label class="ml"><input type="checkbox" id="mwls"> WLS</label></div>
+<div class="rl"><div class="ch"><div id="s5" style="width:100%;height:420px"></div></div>
+<div class="sp" id="sp5"></div></div>
+<div class="ct" id="ct5"></div>
+<div class="ep mt"><h3>Why Remedies Must Match the Problem</h3><div id="ex5"></div></div></div>
+
+</main></div>
+<script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
